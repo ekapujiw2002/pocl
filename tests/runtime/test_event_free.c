@@ -44,21 +44,21 @@ int main(int argc, char **argv)
   cl_mem buf = clCreateBuffer(ctx, CL_MEM_READ_WRITE, buf_size, NULL, &err);
   CHECK_OPENCL_ERROR_IN("clCreateBuffer");
 
-  cl_image_format img_fmt = {
-    .image_channel_order = CL_R,
-    .image_channel_data_type = CL_UNSIGNED_INT32 };
-  cl_image_desc img_dsc = {
-    .image_type = CL_MEM_OBJECT_IMAGE2D,
-    .image_width = 1,
-    .image_height = 1,
-    .image_depth = 1,
-    .image_array_size = 1,
-    .image_row_pitch = 0,
-    .image_slice_pitch = 0,
-    .num_mip_levels = 0,
-    .num_samples = 0,
-    .buffer = NULL,
-  };
+  cl_image_format img_fmt;
+  img_fmt.image_channel_order = CL_R;
+  img_fmt.image_channel_data_type = CL_UNSIGNED_INT32;
+
+  cl_image_desc img_dsc;
+  img_dsc.image_type = CL_MEM_OBJECT_IMAGE2D;
+  img_dsc.image_width = 1;
+  img_dsc.image_height = 1;
+  img_dsc.image_depth = 1;
+  img_dsc.image_array_size = 1;
+  img_dsc.image_row_pitch = 0;
+  img_dsc.image_slice_pitch = 0;
+  img_dsc.num_mip_levels = 0;
+  img_dsc.num_samples = 0;
+  img_dsc.buffer = NULL;
 
   cl_mem img = clCreateImage(ctx, CL_MEM_READ_WRITE,
     &img_fmt, &img_dsc, NULL, &err);
@@ -81,21 +81,21 @@ int main(int argc, char **argv)
    */
 
   /* Test without associated event */
-  host_ptr = clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
+  host_ptr = (cl_int *)clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
     1, &no_event, NULL, &err);
   TEST_ASSERT(err == CL_INVALID_EVENT_WAIT_LIST);
   TEST_ASSERT(host_ptr == NULL);
 
   /* Test with map_event = NULL */
   cl_event map_event = NULL;
-  host_ptr = clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
+  host_ptr = (cl_int *)clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
     1, &no_event, &map_event, &err);
   TEST_ASSERT(err == CL_INVALID_EVENT_WAIT_LIST);
   TEST_ASSERT(host_ptr == NULL);
   TEST_ASSERT(map_event == NULL); /* should not have been touched */
 
   /* Now do an actual mapping to test the unmapping */
-  host_ptr = clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
+  host_ptr = (cl_int *)clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
     0, NULL, NULL, &err);
   CHECK_OPENCL_ERROR_IN("map buffer");
 
@@ -112,13 +112,13 @@ int main(int argc, char **argv)
 
   /* Test with map_event != NULL but invalid */
   map_event = (cl_event)1;
-  host_ptr = clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
+  host_ptr = (cl_int *)clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
     1, &no_event, &map_event, &err);
   TEST_ASSERT(err == CL_INVALID_EVENT_WAIT_LIST);
   TEST_ASSERT(host_ptr == NULL);
   TEST_ASSERT(map_event == (cl_event)1); /* should not have been touched */
 
-  host_ptr = clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
+  host_ptr = (cl_int *)clEnqueueMapBuffer(queue, buf, CL_TRUE, CL_MAP_READ, 0, buf_size,
     0, NULL, NULL, &err);
   CHECK_OPENCL_ERROR_IN("map buffer");
 
@@ -156,7 +156,7 @@ int main(int argc, char **argv)
   TEST_ASSERT(err == CL_INVALID_EVENT_WAIT_LIST);
 
   size_t img_pitch = 0;
-  host_ptr = clEnqueueMapImage(queue, img, CL_TRUE, CL_MAP_READ,
+  host_ptr = (cl_int *)clEnqueueMapImage(queue, img, CL_TRUE, CL_MAP_READ,
     origin, region, &img_pitch, NULL,
     1, &no_event, NULL, &err);
   TEST_ASSERT(err == CL_INVALID_EVENT_WAIT_LIST);
@@ -190,7 +190,7 @@ int main(int argc, char **argv)
       1, &no_event, &map_event);
     TEST_ASSERT(err == CL_INVALID_EVENT_WAIT_LIST);
     TEST_ASSERT(map_event == initial_value);
-    host_ptr = clEnqueueMapImage(queue, img, CL_TRUE, CL_MAP_READ,
+    host_ptr = (cl_int *)clEnqueueMapImage(queue, img, CL_TRUE, CL_MAP_READ,
       origin, region, &img_pitch, NULL,
       1, &no_event, &map_event, &err);
     TEST_ASSERT(err == CL_INVALID_EVENT_WAIT_LIST);

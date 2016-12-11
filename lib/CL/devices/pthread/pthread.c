@@ -203,7 +203,7 @@ pocl_pthread_init (cl_device_id device, const char* parameters)
   // pthread has elementary partitioning support
   device->max_sub_devices = device->max_compute_units;
   device->num_partition_properties = 2;
-  device->partition_properties = calloc(device->num_partition_properties,
+  device->partition_properties = (cl_device_partition_property *)calloc(device->num_partition_properties,
     sizeof(cl_device_partition_property));
   device->partition_properties[0] = CL_DEVICE_PARTITION_EQUALLY;
   device->partition_properties[1] = CL_DEVICE_PARTITION_BY_COUNTS;

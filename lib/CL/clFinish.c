@@ -291,7 +291,7 @@ static void exec_commands (_cl_command_node *node_list)
           POCL_UPDATE_EVENT_RUNNING(event);
           if (node->command.svm_free.pfn_free_func)
             node->command.svm_free.pfn_free_func(
-                node->command.svm_free.queue,
+                (cl_command_queue)node->command.svm_free.queue,
                 node->command.svm_free.num_svm_pointers,
                 node->command.svm_free.svm_pointers,
                 node->command.svm_free.data);

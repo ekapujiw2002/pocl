@@ -6,7 +6,7 @@ int pocl_debug_messages;
 int stderr_is_a_tty;
 
 
-  #if !defined(_MSC_VER) && !defined(__MINGW32__)
+  #if !defined(__MINGW32__)
 
     #include <time.h>
     #include <stdio.h>

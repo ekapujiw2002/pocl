@@ -522,7 +522,7 @@ check_copy_overlap(const size_t src_offset[3],
 cl_device_id * pocl_unique_device_list(const cl_device_id * in, cl_uint num, cl_uint *real)
 {
   cl_uint real_num = num;
-  cl_device_id * out = calloc(num, sizeof(cl_device_id));
+  cl_device_id * out = (cl_device_id *)calloc(num, sizeof(cl_device_id));
   if (!out)
     return NULL;
 

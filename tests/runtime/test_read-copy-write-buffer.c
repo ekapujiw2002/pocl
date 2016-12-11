@@ -75,10 +75,10 @@ main(void)
 
       const size_t buf_size = (alloc/sizeof(cl_int))*sizeof(cl_int);
 
-      cl_int *host_buf1 = malloc(buf_size);
+      cl_int *host_buf1 = (cl_int *)malloc(buf_size);
       if (host_buf1 == NULL)
         return EXIT_FAILURE;
-      cl_int *host_buf2 = malloc(buf_size);
+      cl_int *host_buf2 = (cl_int *)malloc(buf_size);
       if (host_buf2 == NULL)
         return EXIT_FAILURE;
 

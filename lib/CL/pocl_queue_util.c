@@ -58,7 +58,7 @@ void pocl_init_queue_list()
   // will probably never need a realloc, but still
   queue_alloc = QUEUE_ALLOC_SIZE;
 
-  queue_list = calloc(queue_alloc, sizeof(cl_command_queue));
+  queue_list = (cl_command_queue *)calloc(queue_alloc, sizeof(cl_command_queue));
 
   if (!queue_list)
     POCL_ABORT("unable to allocate queue list!");
@@ -102,7 +102,7 @@ void pocl_queue_list_insert(cl_command_queue q)
 
   if (queue_size == queue_alloc) {
     // compaction failed to give us room
-    cl_command_queue *resized = realloc(queue_list, queue_alloc + 256);
+    cl_command_queue *resized = (cl_command_queue *)realloc(queue_list, queue_alloc + 256);
     if (!resized)
       POCL_ABORT("failed to enlarge queue list!");
     queue_list = resized;

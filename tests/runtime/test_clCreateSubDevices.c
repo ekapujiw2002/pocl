@@ -47,11 +47,11 @@ static const char *prog_src_two = "kernel void\n"
 int test_context(cl_context ctx, const char *prog_src, int mul,
   int ndevs, cl_device_id *devs) {
   cl_int err;
-  cl_command_queue queue[ndevs];
+  cl_command_queue *queue = (cl_command_queue *)calloc(sizeof(cl_command_queue), ndevs);
   cl_program prog;
   cl_kernel krn;
   cl_mem buf;
-  cl_event evt[ndevs];
+  cl_event *evt = (cl_event *)calloc(sizeof(cl_event), ndevs);
   cl_int i;
 
   prog = clCreateProgramWithSource(ctx, 1, &prog_src, NULL, &err);
@@ -83,7 +83,7 @@ int test_context(cl_context ctx, const char *prog_src, int mul,
   }
 
   /* enqueue map on last */
-  cl_int *buf_host = clEnqueueMapBuffer(queue[ndevs - 1], buf, CL_TRUE,
+  cl_int *buf_host = (cl_int *)clEnqueueMapBuffer(queue[ndevs - 1], buf, CL_TRUE,
     CL_MAP_READ, 0, ndevs*sizeof(cl_int), ndevs, evt, NULL, &err);
   CHECK_OPENCL_ERROR_IN("map buffer");
 
@@ -161,7 +161,7 @@ int main(int argc, char **argv)
     0, NULL, &dev_pt_size);
   CHECK_OPENCL_ERROR_IN("CL_DEVICE_PARTITION_PROPERTIES size");
 
-  dev_pt = malloc(dev_pt_size);
+  dev_pt = (cl_device_partition_property *)malloc(dev_pt_size);
   TEST_ASSERT(dev_pt);
   err = clGetDeviceInfo(rootdev, CL_DEVICE_PARTITION_PROPERTIES,
     dev_pt_size, dev_pt, NULL);
@@ -244,7 +244,7 @@ int main(int argc, char **argv)
     CHECK_OPENCL_ERROR_IN("sub partition type");
     TEST_ASSERT(ptype_size == sizeof(equal_splitter));
 
-    ptype = malloc(ptype_size);
+    ptype = (cl_device_partition_property *)malloc(ptype_size);
     TEST_ASSERT(ptype);
     err = clGetDeviceInfo(eqdev[i], CL_DEVICE_PARTITION_TYPE,
       ptype_size, ptype, NULL);
@@ -330,7 +330,7 @@ int main(int argc, char **argv)
     CHECK_OPENCL_ERROR_IN("sub partition type");
     TEST_ASSERT(ptype_size == sizeof(count_splitter) - sizeof(*count_splitter));
 
-    ptype = malloc(ptype_size);
+    ptype = (cl_device_partition_property *)malloc(ptype_size);
     TEST_ASSERT(ptype);
     err = clGetDeviceInfo(countdev[i], CL_DEVICE_PARTITION_TYPE,
       ptype_size, ptype, NULL);

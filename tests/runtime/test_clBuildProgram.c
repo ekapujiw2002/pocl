@@ -123,7 +123,7 @@ main(void){
           err = clGetProgramBuildInfo(program, devices[i], CL_PROGRAM_BUILD_LOG,
                   0, NULL, &log_size);
           CHECK_OPENCL_ERROR_IN("get build log size");
-          char *log = malloc(log_size);
+          char *log = (char *)malloc(log_size);
           err = clGetProgramBuildInfo(program, devices[i], CL_PROGRAM_BUILD_LOG,
                   log_size, log, NULL);
           CHECK_OPENCL_ERROR_IN("get build log");
@@ -139,7 +139,7 @@ main(void){
 	  err = clGetProgramBuildInfo(program, devices[i], CL_PROGRAM_BUILD_LOG,
 		  0, NULL, &log_size);
 	  CHECK_OPENCL_ERROR_IN("get build log size");
-	  char *log = malloc(log_size);
+	  char *log = (char *)malloc(log_size);
 	  err = clGetProgramBuildInfo(program, devices[i], CL_PROGRAM_BUILD_LOG,
 		  log_size, log, NULL);
 	  CHECK_OPENCL_ERROR_IN("get build log");

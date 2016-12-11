@@ -66,8 +66,8 @@ llvm_codegen (const char* tmpdir, cl_kernel kernel, cl_device_id device) {
   char bytecode[POCL_FILENAME_LENGTH];
   char objfile[POCL_FILENAME_LENGTH];
 
-  char* module = malloc(strlen(tmpdir) + strlen(kernel->name) +
-                        strlen("/.so") + 1);
+  char* module = (char *)malloc(strlen(tmpdir) + strlen(kernel->name) +
+                                strlen("/.so") + 1);
 
   int error;
 

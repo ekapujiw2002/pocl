@@ -39,7 +39,7 @@
 #undef ERROR
 
 // if this causes linking problems, use inline function below...
-#define snprintf _snprintf
+//#define snprintf _snprintf
 
 /*
 static inline int snprintf(char *str, size_t size, const char *format, ...) {

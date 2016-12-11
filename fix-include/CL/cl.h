@@ -38,6 +38,10 @@
 #    include_next <CL/cl.h>
 #  pragma GCC diagnostic pop
 
+#elif defined(_MSC_VER)
+
+#  include <../include/CL/cl.h>
+
 #else
 
 #  include_next <CL/cl.h>

@@ -50,6 +50,8 @@
 #if __STDC_VERSION__ < 199901L
 # if __GNUC__ >= 2
 #  define __func__ __PRETTY_FUNCTION__
+#elif defined(_MSC_VER)
+#  define __func__ __FUNCTION__
 # else
 #  define __func__ UNKNOWN_FUNCTION
 # endif
@@ -167,7 +169,7 @@ typedef pthread_mutex_t pocl_lock_t;
 #  define POsymICD(name) POsym(name)
 #  define POdeclsymICD(name) POdeclsym(name)
 #else
-#  define POCL_ICD_OBJECT
+#  define POCL_ICD_OBJECT void *null_dispatch;
 #  define POsymICD(name)
 #  define POdeclsymICD(name)
 #endif

@@ -42,11 +42,20 @@ class TestShuffle {
 
   cl_program prog;
 
+#if !defined(_MSC_VER)
   D in1 [16] __attribute__ ((aligned (128)));
   D in2 [16] __attribute__ ((aligned (128)));
   D out [16] __attribute__ ((aligned (128)));
   M mask1 [16] __attribute__ ((aligned (128)));
   M mask2 [16] __attribute__ ((aligned (128)));
+#else
+  __declspec(align(128)) D in1[16];
+  __declspec(align(128)) D in2[16];
+  __declspec(align(128)) D out[16];
+  __declspec(align(128)) M mask1[16];
+  __declspec(align(128)) M mask2[16];
+#endif
+
   const char* ocl_type;
   unsigned size;
   cl_int errcode;

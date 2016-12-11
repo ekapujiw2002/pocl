@@ -212,6 +212,10 @@ foreach(LIBNAME ${LLVM_LIBNAMES})
   list(APPEND LLVM_LIBFILES "${L_LIBFILE_${LIBNAME}}")
 endforeach()
 
+if(MSVC)
+  set(LLVM_LIBS "${LLVM_LIBFILES}")
+  #message(STATUS "LLVM_LIBS=${LLVM_LIBS} ${LLVM_SYSLIBS} ${LLVM_LDFLAGS}")
+endif()
 
 ####################################################################
 
@@ -590,7 +594,7 @@ set(LLC_HOST_CPU "${LLC_HOST_CPU}" CACHE STRING "The Host CPU to use with llc")
 
 setup_cache_var_name(LLVM_LINK_TEST "LLVM_LINK_TEST-${LLVM_HOST_TARGET}-${CLANG}")
 
-if(NOT DEFINED ${CACHE_VAR_NAME})
+if(NOT DEFINED ${CACHE_VAR_NAME} AND NOT MSVC)
 
   set(LLVM_LINK_TEST_SOURCE "
     #include <stdio.h>

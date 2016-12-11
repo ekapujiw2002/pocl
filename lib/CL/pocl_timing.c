@@ -87,6 +87,7 @@ uint64_t pocl_gettimemono_ns() {
 #elif defined(_WIN32)
   FILETIME ft;
   GetSystemTimeAsFileTime(&ft);
+  uint64_t res = 0;
   res |= ft.dwHighDateTime;
   res <<= 32;
   res |= ft.dwLowDateTime;
@@ -139,6 +140,7 @@ int pocl_gettimereal(int *year, int *mon, int *day, int *hour, int *min, int *se
 #elif defined(_WIN32)
   FILETIME ft;
   GetSystemTimeAsFileTime(&ft);
+  uint64_t res = 0;
   res |= ft.dwHighDateTime;
   res <<= 32;
   res |= ft.dwLowDateTime;

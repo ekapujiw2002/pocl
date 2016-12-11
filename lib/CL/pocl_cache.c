@@ -24,7 +24,9 @@
 #include <stddef.h>
 #include <stdio.h>
 #include <string.h>
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#endif
 
 #include "config.h"
 #ifdef POCL_BUILT_WITH_CMAKE
@@ -180,7 +182,7 @@ void* pocl_cache_acquire_reader_lock_i(cl_program program,
 }
 
 void pocl_cache_release_lock(void* lock) {
-    return release_lock(lock);
+    release_lock(lock);
 }
 
 void* pocl_cache_acquire_writer_lock(cl_program program,

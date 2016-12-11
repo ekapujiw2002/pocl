@@ -48,10 +48,10 @@ POP_COMPILER_DIAGS
 using namespace llvm;
 
 #ifdef LLVM_OLDER_THAN_3_7
-typedef AliasAnalysis::AliasResult AliasResult;
+typedef AliasAnalysis::AliasResult llvm_AliasResult;
 #else
-typedef llvm::MemoryLocation Location;
-typedef llvm::AliasResult AliasResult;
+typedef llvm::MemoryLocation llvm_Location;
+typedef llvm::AliasResult llvm_AliasResult;
 #endif
 
 /// WorkItemAliasAnalysis - This is a simple alias analysis
@@ -91,7 +91,7 @@ public:
     
     private:
         virtual void getAnalysisUsage(AnalysisUsage &AU) const;
-        virtual AliasResult alias(const Location &LocA, const Location &LocB);
+        virtual llvm_AliasResult alias(const llvm_Location &LocA, const llvm_Location &LocB);
 };
 
 #else
@@ -111,7 +111,7 @@ public:
     WorkItemAAResult(WorkItemAAResult &&Arg)
         : AAResultBase(Arg.TLI) {}
 
-    AliasResult alias(const MemoryLocation &LocA, const MemoryLocation &LocB);
+    llvm_AliasResult alias(const MemoryLocation &LocA, const MemoryLocation &LocB);
 };
 
 class WorkItemAA {
@@ -201,11 +201,11 @@ WorkItemAliasAnalysis::getAnalysisUsage(AnalysisUsage &AU) const {
  * Then they can not alias.
  */
 
-AliasResult
+llvm_AliasResult
 #ifdef LLVM_OLDER_THAN_3_8
-WorkItemAliasAnalysis::alias(const Location &LocA, const Location &LocB) {
+WorkItemAliasAnalysis::alias(const llvm_Location &LocA, const llvm_Location &LocB) {
 #else
-WorkItemAAResult::alias(const Location &LocA, const Location &LocB) {
+WorkItemAAResult::alias(const llvm_Location &LocA, const llvm_Location &LocB) {
 #endif
     // If either of the memory references is empty, it doesn't matter what the
     // pointer values are. This allows the code below to ignore this special

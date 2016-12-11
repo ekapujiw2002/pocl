@@ -13,9 +13,10 @@ mkdir $POCLBUILDROOT
 cd $POCLBUILDROOT
 
 # Get external libs
-curl ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.zip -O
-curl http://www.open-mpi.org/software/hwloc/v1.10/downloads/hwloc-win64-build-1.10.0.zip -O
+curl https://www.open-mpi.org/software/hwloc/v1.10/downloads/hwloc-win64-build-1.10.0.zip -O
 unzip hwloc-win64-build-1.10.0.zip
+
+curl ftp://sourceware.org/pub/pthreads-win32/pthreads-w32-2-9-1-release.zip -O
 unzip pthreads-w32-2-9-1-release.zip -d pthreads-win32-full
 cp -r pthreads-win32-full/Pre-built.2 pthreads-win32
 

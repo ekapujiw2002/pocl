@@ -36,7 +36,7 @@ POname(clSetKernelArgSVMPointer)(cl_kernel kernel,
   POCL_RETURN_ERROR_ON((!kernel->context->svm_allocdev), CL_INVALID_CONTEXT,
                        "None of the devices in this context is SVM-capable\n");
 
-  cl_mem mem = malloc(sizeof(struct _cl_mem));
+  cl_mem mem = (cl_mem)malloc(sizeof(struct _cl_mem));
   POCL_INIT_OBJECT(mem);
   mem->mem_host_ptr = (void*)arg_value;
   mem->parent = NULL;

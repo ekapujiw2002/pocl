@@ -294,7 +294,7 @@ pocl_cpuinfo_get_cpu_name_and_vendor(cl_device_id device)
     end = strchr(start, '\n');
     if (!end)
       break;
-    char *_vendor = malloc(end-start + 1);
+    char *_vendor = (char *)malloc(end-start + 1);
     if (!_vendor)
       break;
     memcpy(_vendor, start, end-start);

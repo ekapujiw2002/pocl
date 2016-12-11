@@ -45,7 +45,9 @@ int const niters = 10;
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#if !defined(_MSC_VER)
 #include <sys/time.h>
+#endif
 
 #ifdef __APPLE__
 #  include <OpenCL/opencl.h>
@@ -429,7 +431,7 @@ static void allocate(cGH const* const cctkGH,
 {
   int const nsize =
     cctkGH->cctk_ash[0] * cctkGH->cctk_ash[1] * cctkGH->cctk_ash[2];
-  ptr->ptr = malloc(nsize * sizeof(CCTK_REAL));
+  ptr->ptr = (CCTK_REAL *)malloc(nsize * sizeof(CCTK_REAL));
   assert(ptr->ptr);
   for (int k=0; k<cctkGH->cctk_lsh[2]; ++k) {
     for (int j=0; j<cctkGH->cctk_lsh[1]; ++j) {
@@ -454,7 +456,7 @@ void setup()
   // Choose a platform and a context (basically a device)
   cl_uint num_platforms;
   clGetPlatformIDs(0, NULL, &num_platforms);
-  cl_platform_id platform_ids[num_platforms];
+  cl_platform_id *platform_ids = (cl_platform_id *)calloc(sizeof(cl_platform_id), num_platforms);
   clGetPlatformIDs(num_platforms, &platform_ids[0], &num_platforms);
   if (num_platforms <= 0) {
     fprintf(stderr, "No OpenCL platforms found\n");
@@ -477,14 +479,14 @@ void setup()
     size_t platform_name_length;
     clGetPlatformInfo(tmp_platform_id, CL_PLATFORM_NAME,
                       0, NULL, &platform_name_length);
-    char platform_name[platform_name_length];
+    char *platform_name = (char *)calloc(sizeof(char), platform_name_length);
     clGetPlatformInfo(tmp_platform_id, CL_PLATFORM_NAME,
                       platform_name_length, platform_name, NULL);
     printf("   OpenCL platform name: %s\n", platform_name);
     size_t platform_vendor_length;
     clGetPlatformInfo(tmp_platform_id, CL_PLATFORM_VENDOR,
                       0, NULL, &platform_vendor_length);
-    char platform_vendor[platform_vendor_length];
+    char *platform_vendor = (char *)calloc(sizeof(char), platform_vendor_length);
     clGetPlatformInfo(tmp_platform_id, CL_PLATFORM_VENDOR,
                       platform_vendor_length, platform_vendor, NULL);
     printf("   OpenCL platform vendor: %s\n", platform_vendor);
@@ -506,7 +508,7 @@ void setup()
   size_t ndevice_ids;
   clGetContextInfo(context, CL_CONTEXT_DEVICES, 0, NULL, &ndevice_ids);
   ndevice_ids /= sizeof(cl_device_id);
-  cl_device_id device_ids[ndevice_ids];
+  cl_device_id *device_ids = (cl_device_id *)calloc(sizeof(cl_device_id), ndevice_ids);
   clGetContextInfo(context, CL_CONTEXT_DEVICES,
                    ndevice_ids*sizeof(cl_device_id), device_ids, NULL);
   assert(ndevice_ids >= 1);
@@ -514,7 +516,7 @@ void setup()
   
   size_t device_name_length;
   clGetDeviceInfo(device_id, CL_DEVICE_NAME, 0, NULL, &device_name_length);
-  char device_name[device_name_length];
+  char *device_name = (char *)calloc(sizeof(char), device_name_length);
   clGetDeviceInfo(device_id, CL_DEVICE_NAME,
                   device_name_length, device_name, NULL);
   printf("OpenCL device name: %s\n", device_name);
@@ -524,14 +526,14 @@ void setup()
   size_t platform_name_length;
   clGetPlatformInfo(platform_id, CL_PLATFORM_NAME,
                     0, NULL, &platform_name_length);
-  char platform_name[platform_name_length];
+  char *platform_name = (char *)calloc(sizeof(char), platform_name_length);
   clGetPlatformInfo(platform_id, CL_PLATFORM_NAME,
                     platform_name_length, platform_name, NULL);
   printf("OpenCL platform name: %s\n", platform_name);
   size_t platform_vendor_length;
   clGetPlatformInfo(platform_id, CL_PLATFORM_VENDOR,
                     0, NULL, &platform_vendor_length);
-  char platform_vendor[platform_vendor_length];
+  char *platform_vendor = (char *)calloc(sizeof(char), platform_vendor_length);
   clGetPlatformInfo(platform_id, CL_PLATFORM_VENDOR,
                     platform_vendor_length, platform_vendor, NULL);
   printf("OpenCL platform vendor: %s\n", platform_vendor);
@@ -913,7 +915,7 @@ int exec_ML_BSSN_CL_RHS1(char              const* const program_source,
       ierr = clGetProgramBuildInfo(program, device_id,
                                    CL_PROGRAM_BUILD_LOG, 0, NULL, &log_size);
       assert(!ierr);
-      char build_log[log_size];
+      char *build_log = (char *)calloc(sizeof(char), log_size);
       ierr = clGetProgramBuildInfo(program, device_id,
                                    CL_PROGRAM_BUILD_LOG,
                                    log_size, build_log, NULL);
@@ -1299,7 +1301,8 @@ int main(int argc, char** argv)
 {
   printf("EinsteinToolkit test\n");
   
-  
+#if !defined(_MSC_VER)
+
   
   printf("Reading sources...\n");
   FILE *const source1_file = fopen(SRCDIR "/ML_BSSN_CL_RHS1.cl", "r");
@@ -1307,7 +1310,7 @@ int main(int argc, char** argv)
   fseek(source1_file, 0, SEEK_END);
   size_t const source1_size = ftell(source1_file);
   fseek(source1_file, 0, SEEK_SET);
-  char source1[source1_size + 1];
+  char *source1 = (char *)calloc(sizeof(char), source1_size + 1);
   fread(source1, source1_size, 1, source1_file);
   source1[source1_size] = '\0';
   fclose(source1_file);
@@ -1317,7 +1320,7 @@ int main(int argc, char** argv)
   fseek(source2_file, 0, SEEK_END);
   size_t const source2_size = ftell(source2_file);
   fseek(source2_file, 0, SEEK_SET);
-  char source2[source2_size + 1];
+  char *source2 = (char *)calloc(sizeof(char), source2_size + 1);
   fread(source2, source2_size, 1, source2_file);
   source2[source2_size] = '\0';
   fclose(source2_file);
@@ -1377,9 +1380,10 @@ int main(int argc, char** argv)
   printf("      A \"typical\" result is about 1.0 usec.\n");
   printf("      Smaller numbers are better.\n");
   printf("\n");
+    
   
-  
-  
-  printf ("Done.\n");
+#endif
+
+  printf("Done.\n");
   return 0;
 }

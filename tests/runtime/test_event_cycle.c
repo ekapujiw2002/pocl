@@ -24,7 +24,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#if !defined(_MSC_VER)
 #include <unistd.h>
+#endif
 #include <signal.h>
 #include <CL/cl.h>
 
@@ -52,10 +54,14 @@ main(void)
   /* set up a signal handler for ALRM that will kill
    * the program with EXIT_FAILURE on timeout
    */
+#if !defined(_MSC_VER)
   struct sigaction sa;
   memset(&sa, 0, sizeof(sa));
   sa.sa_handler = timeout;
   sigaction(SIGALRM, &sa, NULL);
+#else
+  // TODO: Add signal and alarm callback
+#endif
 
   err = clGetPlatformIDs(MAX_PLATFORMS, platforms, &nplatforms);
   CHECK_OPENCL_ERROR_IN("clGetPlatformIDs");
@@ -85,10 +91,10 @@ main(void)
 
       const size_t buf_size = alloc;
 
-      cl_int *host_buf1 = malloc(buf_size);
+      cl_int *host_buf1 = (cl_int *)malloc(buf_size);
       if (host_buf1 == NULL)
         return EXIT_FAILURE;
-      cl_int *host_buf2 = malloc(buf_size);
+      cl_int *host_buf2 = (cl_int *)malloc(buf_size);
       if (host_buf2 == NULL)
         return EXIT_FAILURE;
 
@@ -125,7 +131,11 @@ main(void)
 
       /* timeout after 30 seconds: if we're not done by then, timeout() will be
        * invoked and terminate the program with an EXIT_FAILURE */
+#if !defined(_MSC_VER)
       alarm(30);
+#else
+      // TODO: Alarm callback setup to terminate test
+#endif
 
       err = clFinish(queue);
       CHECK_OPENCL_ERROR_IN("clFinish");

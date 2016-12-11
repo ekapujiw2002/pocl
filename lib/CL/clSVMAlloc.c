@@ -90,11 +90,11 @@ POname(clSVMAlloc)(cl_context context,
                          "aligment (%u) \n", alignment);
 
   /* create a fake (temporary) cl_mem */
-  cl_mem mem = alloca(sizeof(struct _cl_mem));
+  cl_mem mem = (cl_mem)alloca(sizeof(struct _cl_mem));
   mem->flags = CL_MEM_ALLOC_HOST_PTR | CL_MEM_READ_WRITE;
   mem->mem_host_ptr = NULL;
   mem->size = size;
-  pocl_mem_identifier device_ptrs[pocl_num_devices];
+  pocl_mem_identifier *device_ptrs = (pocl_mem_identifier *)calloc(pocl_num_devices, sizeof(pocl_mem_identifier));
   device_ptrs[dev->global_mem_id].mem_ptr = NULL;
   mem->device_ptrs = device_ptrs;
 
