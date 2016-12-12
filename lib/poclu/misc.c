@@ -104,9 +104,9 @@ poclu_read_file(char *filename)
     }
 
   fseek(file, 0, SEEK_SET);
-  fread(src, size, 1, file);
+  size_t bytesRead = fread(src, sizeof(char), size, file);
   fclose(file);
-  src[size]=0;
+  src[bytesRead]=0;
 
   return src;
 }

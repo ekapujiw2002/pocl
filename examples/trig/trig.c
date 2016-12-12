@@ -56,7 +56,7 @@ main (void)
   source = (char *) malloc (source_size + 1);
   assert (source != NULL);
 
-  fread (source, source_size, 1, source_file);
+  source_size = fread (source, 1, source_size, source_file);
   source[source_size] = '\0';
 
   fclose (source_file);

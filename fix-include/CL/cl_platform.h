@@ -26,7 +26,7 @@
 #define CL_USE_DEPRECATED_OPENCL_1_2_APIS
 
 #ifdef _MSC_VER
-#  include "../include/CL/cl_platform.h"
+#  include <../include/CL/cl_platform.h>
 #else
 #  include_next <CL/cl_platform.h>
 #endif

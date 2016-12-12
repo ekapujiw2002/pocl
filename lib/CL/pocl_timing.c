@@ -138,16 +138,27 @@ int pocl_gettimereal(int *year, int *mon, int *day, int *hour, int *min, int *se
   return 0;
 
 #elif defined(_WIN32)
+  SYSTEMTIME st;
+  GetSystemTime(&st);
+  *year = st.wYear;
+  *mon = st.wMonth;
+  *day = st.wDay;
+  *hour = st.wHour;
+  *min = st.wMinute;
+  *sec = st.wSecond;
+
   FILETIME ft;
   GetSystemTimeAsFileTime(&ft);
   uint64_t res = 0;
   res |= ft.dwHighDateTime;
   res <<= 32;
   res |= ft.dwLowDateTime;
-  res -= 11644473600000000Ui64;
-  res /= 10;
-  // TODO finish this
-  return 1;
+  // Convert to the Unix epoch - Jan 1, 1970
+  res -= 116444736000000000Ui64;
+  // Nano seconds passed so far today
+  res %= 86400Ui64;
+  *nanosec = res;
+  return 0;
 #else
 #error Unknown system variant
 #endif

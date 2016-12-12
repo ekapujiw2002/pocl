@@ -22,12 +22,12 @@ cp -r pthreads-win32-full/Pre-built.2 pthreads-win32
 
 # Build llvm
 cd $POCLBUILDROOT
-git clone --single-branch https://github.com/llvm-mirror/llvm -b release_36
+git clone --single-branch https://github.com/llvm-mirror/llvm -b release_37
 cd llvm/tools
-git clone --single-branch https://github.com/llvm-mirror/clang.git -b release_36
+git clone --single-branch https://github.com/llvm-mirror/clang.git -b release_37
 mkdir $POCLBUILDROOT/llvm-build
 cd $POCLBUILDROOT/llvm-build
-cmake -G "Visual Studio 12 Win64" ../llvm
+cmake  -DLLVM_TARGETS_TO_BUILD=X86 -DCMAKE_BUILD_TYPE=MinSizeRel -G "Visual Studio 14 2015 Win64" ../llvm
 cmake --build . --config MinSizeRel
 
 # Build pocl
@@ -36,8 +36,18 @@ git clone https://github.com/pocl/pocl.git
 mkdir $POCLBUILDROOT/pocl-build
 cd $POCLBUILDROOT/pocl-build
 export PATH=$PATH:$POCLBUILDROOT/llvm-build/MinSizeRel/bin
-Hwloc_ROOT=../hwloc-win64-build-1.10.0/ Pthreads_ROOT=../pthreads-win32/ cmake -DSTATIC_LLVM:BOOL=ON -DDEFAULT_ENABLE_ICD:BOOL=OFF -DCMAKE_INSTALL_PREFIX:PATH=$PWD/../install-pocl -G "Visual Studio 12 Win64" ../pocl/
+Hwloc_ROOT=../hwloc-win64-build-1.10.0/ Pthreads_ROOT=../pthreads-win32/ \
+  cmake -DSTATIC_LLVM:BOOL=ON -DDEFAULT_ENABLE_ICD:BOOL=OFF \
+    -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS:BOOL=OFF \
+    -DCMAKE_INSTALL_PREFIX:PATH=$PWD/../install-pocl \
+    -G "Visual Studio 14 2015 Win64" ../pocl/
 cmake --build . --config MinSizeRel
+
+# Add the following two directories to your Windows PATH, 
+# so that the LLVM+clang, HwLoc and PThreads can be found -
+# C:\pocl-playground\llvm-build\MinSizeRel\bin
+# C:\pocl-playground\hwloc-win64-build-1.10.0\bin
+# C:\pocl-playground\pthreads-win32\dll\x64
 
 ## Run test suite
 # export PATH=$PATH:$POCLBUILDROOT/pocl-build/lib/CL/MinSizeRel:$POCLBUILDROOT/pocl-build/lib/llvmopencl/MinSizeRel:$POCLBUILDROOT/pocl-build/lib/poclu/MinSizeRel:$POCLBUILDROOT/hwloc-win64-build-1.10.0/bin:$POCLBUILDROOT/pthreads-win32/dll/x64

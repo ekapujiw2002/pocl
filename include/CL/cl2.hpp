@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008-2015 The Khronos Group Inc.
+ * Copyright (c) 2008-2016 The Khronos Group Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a
  * copy of this software and/or associated documentation files (the
@@ -12,6 +12,11 @@
  * The above copyright notice and this permission notice shall be included
  * in all copies or substantial portions of the Materials.
  *
+ * MODIFICATIONS TO THIS FILE MAY MEAN IT NO LONGER ACCURATELY REFLECTS
+ * KHRONOS STANDARDS. THE UNMODIFIED, NORMATIVE VERSIONS OF KHRONOS
+ * SPECIFICATIONS AND HEADER INFORMATION ARE LOCATED AT
+ *    https://www.khronos.org/registry/
+ *
  * THE MATERIALS ARE PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
  * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
@@ -23,27 +28,42 @@
 
 /*! \file
  *
- *   \brief C++ bindings for OpenCL 1.0 (rev 48), OpenCL 1.1 (rev 33), 
+ *   \brief C++ bindings for OpenCL 1.0 (rev 48), OpenCL 1.1 (rev 33),
  *       OpenCL 1.2 (rev 15) and OpenCL 2.0 (rev 29)
  *   \author Lee Howes and Bruce Merry
- *   
- *   Derived from the OpenCL 1.x C++ bindings written by 
+ *
+ *   Derived from the OpenCL 1.x C++ bindings written by
  *   Benedict R. Gaster, Laurent Morichetti and Lee Howes
  *   With additions and fixes from:
  *       Brian Cole, March 3rd 2010 and April 2012
  *       Matt Gruenke, April 2012.
  *       Bruce Merry, February 2013.
  *       Tom Deakin and Simon McIntosh-Smith, July 2013
- *   
- *   \version 2.0.5
- *   \date 2015-08-10
+ *       James Price, 2015-
+ *
+ *   \version 2.0.10
+ *   \date 2016-07-20
  *
  *   Optional extension support
  *
  *         cl_ext_device_fission
  *         #define CL_HPP_USE_CL_DEVICE_FISSION
  *         cl_khr_d3d10_sharing
- *         #define USE_DX_INTEROP
+ *         #define CL_HPP_USE_DX_INTEROP
+ *         cl_khr_sub_groups
+ *         #define CL_HPP_USE_CL_SUB_GROUPS_KHR
+ *
+ *   Doxygen documentation for this header is available here:
+ *
+ *       http://khronosgroup.github.io/OpenCL-CLHPP/
+ *
+ *   The latest version of this header can be found on the GitHub releases page:
+ *
+ *       https://github.com/KhronosGroup/OpenCL-CLHPP/releases
+ *
+ *   Bugs and patches can be submitted to the GitHub repository:
+ *
+ *       https://github.com/KhronosGroup/OpenCL-CLHPP
  */
 
 /*! \mainpage
@@ -54,7 +74,7 @@
  * The interface is contained with a single C++ header file \em cl2.hpp and all
  * definitions are contained within the namespace \em cl. There is no additional
  * requirement to include \em cl.h and to use either the C++ or original C
- * bindings; it is enough to simply include \em cl.hpp.
+ * bindings; it is enough to simply include \em cl2.hpp.
  *
  * The bindings themselves are lightweight and correspond closely to the
  * underlying C API. Using the C++ bindings introduces no additional execution
@@ -96,7 +116,7 @@
  * by default.
  * In all cases these standard library classes can be replaced with 
  * custom interface-compatible versions using the CL_HPP_NO_STD_ARRAY, 
- * CL_HPP_NO_STD_VECTOR, CL_HPP_NO_STD_SHARED_PTR and 
+ * CL_HPP_NO_STD_VECTOR, CL_HPP_NO_STD_UNIQUE_PTR and 
  * CL_HPP_NO_STD_STRING macros.
  *
  * The OpenCL 1.x versions of the C++ bindings included a size_t wrapper
@@ -126,41 +146,64 @@
  *
  * \section parameterization Parameters
  * This header may be parameterized by a set of preprocessor macros.
- * CL_HPP_TARGET_OPENCL_VERSION
- *  - Defines the target OpenCL runtime version to build the header against.
- *    Defaults to 200, representing OpenCL 2.0.
- * CL_HPP_NO_STD_STRING
- *  - Do not use the standard library string class.
- *    cl::string is not defined and may be defined by the user before 
- *    cl2.hpp is included.
- * CL_HPP_NO_STD_VECTOR
- *  - Do not use the standard library vector class.
- *    cl::vector is not defined and may be defined by the user before
- *    cl2.hpp is included. 
- * CL_HPP_NO_STD_ARRAY
- *  - Do not use the standard library array class.
- *    cl::array is not defined and may be defined by the user before
- *    cl2.hpp is included.
- * CL_HPP_NO_STD_SHARED_PTR
- *  - Do not use the standard library shared_ptr class.
- *    cl::pointer and the cl::allocate_pointer function are not defined 
- *    and may be defined by the user before cl2.hpp is included.
- * CL_HPP_ENABLE_DEVICE_FISSION 
- *  - Enables device fission for OpenCL 1.2 platforms
- * CL_HPP_ENABLE_EXCEPTIONS
- *  - Enable exceptions for use in the C++ bindings header.
- *    This is the preferred error handling mechanism but is not required.
- * CL_HPP_ENABLE_SIZE_T_COMPATIBILITY
- *  - Backward compatibility option to support cl.hpp-style size_t class.
- *    Replaces the updated std::array derived version and removal of size_t
- *    from the namespace. Note that in this case the new size_t class
- *    is placed in the cl::compatibility namespace and thus requires
- *    an additional using declaration for direct backward compatibility.
- * CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY 
- *  - Enable older vector of pairs interface for construction of programs.
- * CL_HPP_CL_1_2_DEFAULT_BUILD
- *  - Default to OpenCL C 1.2 compilation rather than OpenCL C 2.0
- *  - applies to use of cl::Program construction and other program build variants.
+ *
+ * - CL_HPP_TARGET_OPENCL_VERSION
+ *
+ *   Defines the target OpenCL runtime version to build the header
+ *   against. Defaults to 200, representing OpenCL 2.0.
+ *
+ * - CL_HPP_NO_STD_STRING
+ *
+ *   Do not use the standard library string class. cl::string is not
+ *   defined and may be defined by the user before cl2.hpp is
+ *   included.
+ *
+ * - CL_HPP_NO_STD_VECTOR
+ *
+ *   Do not use the standard library vector class. cl::vector is not
+ *   defined and may be defined by the user before cl2.hpp is
+ *   included.
+ *
+ * - CL_HPP_NO_STD_ARRAY
+ *
+ *   Do not use the standard library array class. cl::array is not
+ *   defined and may be defined by the user before cl2.hpp is
+ *   included.
+ *
+ * - CL_HPP_NO_STD_UNIQUE_PTR
+ *
+ *   Do not use the standard library unique_ptr class. cl::pointer and
+ *   the cl::allocate_pointer functions are not defined and may be
+ *   defined by the user before cl2.hpp is included.
+ *
+ * - CL_HPP_ENABLE_DEVICE_FISSION
+ *
+ *   Enables device fission for OpenCL 1.2 platforms.
+ *
+ * - CL_HPP_ENABLE_EXCEPTIONS
+ *
+ *   Enable exceptions for use in the C++ bindings header. This is the
+ *   preferred error handling mechanism but is not required.
+ *
+ * - CL_HPP_ENABLE_SIZE_T_COMPATIBILITY
+ *
+ *   Backward compatibility option to support cl.hpp-style size_t
+ *   class.  Replaces the updated std::array derived version and
+ *   removal of size_t from the namespace. Note that in this case the
+ *   new size_t class is placed in the cl::compatibility namespace and
+ *   thus requires an additional using declaration for direct backward
+ *   compatibility.
+ *
+ * - CL_HPP_ENABLE_PROGRAM_CONSTRUCTION_FROM_ARRAY_COMPATIBILITY
+ *
+ *   Enable older vector of pairs interface for construction of
+ *   programs.
+ *
+ * - CL_HPP_CL_1_2_DEFAULT_BUILD
+ *
+ *   Default to OpenCL C 1.2 compilation rather than OpenCL C 2.0
+ *   applies to use of cl::Program construction and other program
+ *   build variants.
  *
  *
  * \section example Example
@@ -169,19 +212,19 @@
  * bindings, including support for the optional exception feature and
  * also the supplied vector and string classes, see following sections for
  * decriptions of these features.
- * 
+ *
  * \code
     #define CL_HPP_ENABLE_EXCEPTIONS
     #define CL_HPP_TARGET_OPENCL_VERSION 200
-   
+
     #include <CL/cl2.hpp>
     #include <iostream>
     #include <vector>
     #include <memory>
     #include <algorithm>
-  
+
     const int numElements = 32;
-  
+
     int main(void)
     {
         // Filter for a 2.0 platform and set it as the default
@@ -204,35 +247,45 @@
             std::cout << "Error setting default platform.";
             return -1;
         }
-    
-        std::string kernel1{
-            "global int globalA;"
-            "kernel void updateGlobal(){"
-            "  globalA = 75;"
-            "}"};
-        std::string kernel2{
-            "typedef struct { global int *bar; } Foo; kernel void vectorAdd(global const Foo* aNum, global const int *inputA, global const int *inputB, global int *output, int val, write_only pipe int outPipe, queue_t childQueue){"
-            "  output[get_global_id(0)] = inputA[get_global_id(0)] + inputB[get_global_id(0)] + val + *(aNum->bar);"
-            "  write_pipe(outPipe, &val);"
-            "  queue_t default_queue = get_default_queue(); "
-            "  ndrange_t ndrange = ndrange_1D(get_global_size(0)/2, get_global_size(0)/2); "
-            // Have a child kernel write into third quarter of output
-            "  enqueue_kernel(default_queue, CLK_ENQUEUE_FLAGS_WAIT_KERNEL, ndrange, "
-            "    ^{"
-            "      output[get_global_size(0)*2 + get_global_id(0)] = inputA[get_global_size(0)*2+get_global_id(0)] + inputB[get_global_size(0)*2+get_global_id(0)] + globalA;"
-            "    });"
-            // Have a child kernel write into last quarter of output
-            "  enqueue_kernel(childQueue, CLK_ENQUEUE_FLAGS_WAIT_KERNEL, ndrange, "
-            "    ^{"
-            "      output[get_global_size(0)*3 + get_global_id(0)] = inputA[get_global_size(0)*3 + get_global_id(0)] + inputB[get_global_size(0)*3 + get_global_id(0)] + globalA + 2;"
-            "    });"
-            "}" };
+
+        // Use C++11 raw string literals for kernel source code
+        std::string kernel1{R"CLC(
+            global int globalA;
+            kernel void updateGlobal()
+            {
+              globalA = 75;
+            }
+        )CLC"};
+        std::string kernel2{R"CLC(
+            typedef struct { global int *bar; } Foo;
+            kernel void vectorAdd(global const Foo* aNum, global const int *inputA, global const int *inputB,
+                                  global int *output, int val, write_only pipe int outPipe, queue_t childQueue)
+            {
+              output[get_global_id(0)] = inputA[get_global_id(0)] + inputB[get_global_id(0)] + val + *(aNum->bar);
+              write_pipe(outPipe, &val);
+              queue_t default_queue = get_default_queue();
+              ndrange_t ndrange = ndrange_1D(get_global_size(0)/2, get_global_size(0)/2);
+
+              // Have a child kernel write into third quarter of output
+              enqueue_kernel(default_queue, CLK_ENQUEUE_FLAGS_WAIT_KERNEL, ndrange,
+                ^{
+                    output[get_global_size(0)*2 + get_global_id(0)] =
+                      inputA[get_global_size(0)*2 + get_global_id(0)] + inputB[get_global_size(0)*2 + get_global_id(0)] + globalA;
+                });
+
+              // Have a child kernel write into last quarter of output
+              enqueue_kernel(childQueue, CLK_ENQUEUE_FLAGS_WAIT_KERNEL, ndrange,
+                ^{
+                    output[get_global_size(0)*3 + get_global_id(0)] =
+                      inputA[get_global_size(0)*3 + get_global_id(0)] + inputB[get_global_size(0)*3 + get_global_id(0)] + globalA + 2;
+                });
+            }
+        )CLC"};
 
         // New simpler string interface style
         std::vector<std::string> programStrings {kernel1, kernel2};
 
-        cl::Program vectorAddProgram(
-            programStrings);
+        cl::Program vectorAddProgram(programStrings);
         try {
             vectorAddProgram.build("-cl-std=CL2.0");
         }
@@ -243,7 +296,7 @@
             for (auto &pair : buildInfo) {
                 std::cerr << pair.second << std::endl << std::endl;
             }
-        
+
             return 1;
         }
 
@@ -256,17 +309,17 @@
         program2Kernel(
             cl::EnqueueArgs(
             cl::NDRange(1)));
-    
+
         //////////////////
         // SVM allocations
-    
-        cl::pointer<int> anSVMInt = cl::allocate_svm<int, cl::SVMTraitCoarse<>>();
+
+        auto anSVMInt = cl::allocate_svm<int, cl::SVMTraitCoarse<>>();
         *anSVMInt = 5;
-        cl::SVMAllocator<int, cl::SVMTraitCoarse<cl::SVMTraitReadOnly<>>> svmAllocReadOnly;
-        cl::pointer<Foo> fooPointer = cl::allocate_pointer<Foo>(svmAllocReadOnly);
+        cl::SVMAllocator<Foo, cl::SVMTraitCoarse<cl::SVMTraitReadOnly<>>> svmAllocReadOnly;
+        auto fooPointer = cl::allocate_pointer<Foo>(svmAllocReadOnly);
         fooPointer->bar = anSVMInt.get();
         cl::SVMAllocator<int, cl::SVMTraitCoarse<>> svmAlloc;
-        std::vector<int, cl::SVMAllocator<int, cl::SVMTraitCoarse<>>> inputA(numElements, 1, svmAlloc);    
+        std::vector<int, cl::SVMAllocator<int, cl::SVMTraitCoarse<>>> inputA(numElements, 1, svmAlloc);
         cl::coarse_svm_vector<int> inputB(numElements, 2, svmAlloc);
 
         //
@@ -276,14 +329,14 @@
         std::vector<int> output(numElements, 0xdeadbeef);
         cl::Buffer outputBuffer(begin(output), end(output), false);
         cl::Pipe aPipe(sizeof(cl_int), numElements / 2);
-    
+
         // Default command queue, also passed in as a parameter
         cl::DeviceCommandQueue defaultDeviceQueue = cl::DeviceCommandQueue::makeDefault(
             cl::Context::getDefault(), cl::Device::getDefault());
-    
+
         auto vectorAddKernel =
             cl::KernelFunctor<
-                cl::pointer<Foo>,
+                decltype(fooPointer)&,
                 int*,
                 cl::coarse_svm_vector<int>&,
                 cl::Buffer,
@@ -295,6 +348,12 @@
         // Ensure that the additional SVM pointer is available to the kernel
         // This one was not passed as a parameter
         vectorAddKernel.setSVMPointers(anSVMInt);
+
+        // Hand control of coarse allocations to runtime
+        cl::enqueueUnmapSVM(anSVMInt);
+        cl::enqueueUnmapSVM(fooPointer);
+        cl::unmapSVM(inputB);
+        cl::unmapSVM(output2);
 
 	    cl_int error;
 	    vectorAddKernel(
@@ -312,6 +371,8 @@
             );
 
         cl::copy(outputBuffer, begin(output), end(output));
+        // Grab the SVM output vector using a map
+        cl::mapSVM(output2);
 
         cl::Device d = cl::Device::getDefault();
 
@@ -323,7 +384,7 @@
 
         return 0;
     }
- * 
+ *
  * \endcode
  *
  */
@@ -516,22 +577,13 @@ namespace cl {
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 
-#if !defined(CL_HPP_NO_STD_SHARED_PTR)
+#if !defined(CL_HPP_NO_STD_UNIQUE_PTR)
 #include <memory>
 namespace cl {
-    // Replace shared_ptr and allocate_ptr for internal use
+    // Replace unique_ptr and allocate_pointer for internal use
     // to allow user to replace them
-    template<class T>
-    using pointer = std::shared_ptr<T>;
-
-    template <class T, class Alloc, class... Args>
-    auto allocate_pointer(const Alloc &alloc, Args&&... args) -> 
-        decltype(std::allocate_shared<T>(
-            alloc, std::forward<Args>(args)...))
-    {
-        return std::allocate_shared<T>(
-            alloc, std::forward<Args>(args)...);
-    }
+    template<class T, class D>
+    using pointer = std::unique_ptr<T, D>;
 } // namespace cl
 #endif 
 #endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
@@ -540,7 +592,7 @@ namespace cl {
 namespace cl {
     template < class T, size_type N >
     using array = std::array<T, N>;
-}
+} // namespace cl
 #endif // #if !defined(CL_HPP_NO_STD_ARRAY)
 
 // Define size_type appropriately to allow backward-compatibility
@@ -608,11 +660,11 @@ namespace cl {
 #endif // #if defined(CL_HPP_ENABLE_SIZE_T_COMPATIBILITY)
 
 // Helper alias to avoid confusing the macros
-namespace cl{
+namespace cl {
     namespace detail {
         using size_t_array = array<size_type, 3>;
-    }
-}
+    } // namespace detail
+} // namespace cl
 
 
 /*! \namespace cl
@@ -809,6 +861,7 @@ static inline cl_int errHandler (cl_int err, const char * errStr = NULL)
 #define __ENQUEUE_ACQUIRE_GL_ERR            CL_HPP_ERR_STR_(clEnqueueAcquireGLObjects)
 #define __ENQUEUE_RELEASE_GL_ERR            CL_HPP_ERR_STR_(clEnqueueReleaseGLObjects)
 
+#define __CREATE_PIPE_ERR             CL_HPP_ERR_STR_(clCreatePipe)
 #define __GET_PIPE_INFO_ERR           CL_HPP_ERR_STR_(clGetPipeInfo)
 
 
@@ -850,9 +903,6 @@ static inline cl_int errHandler (cl_int err, const char * errStr = NULL)
 #define __CREATE_SAMPLER_ERR                CL_HPP_ERR_STR_(clCreateSampler)
 #endif // #if defined(CL_USE_DEPRECATED_OPENCL_1_1_APIS)
 
-#endif // CL_HPP_USER_OVERRIDE_ERROR_STRINGS
-//! \endcond
-
 /**
  * CL 1.2 marker and barrier commands
  */
@@ -860,6 +910,9 @@ static inline cl_int errHandler (cl_int err, const char * errStr = NULL)
 #define __ENQUEUE_MARKER_WAIT_LIST_ERR                CL_HPP_ERR_STR_(clEnqueueMarkerWithWaitList)
 #define __ENQUEUE_BARRIER_WAIT_LIST_ERR               CL_HPP_ERR_STR_(clEnqueueBarrierWithWaitList)
 #endif // CL_HPP_TARGET_OPENCL_VERSION >= 120
+
+#endif // CL_HPP_USER_OVERRIDE_ERROR_STRINGS
+//! \endcond
 
 
 namespace detail {
@@ -887,14 +940,12 @@ inline cl_int getInfoHelper(Func f, cl_uint name, vector<vector<unsigned char>>*
         size_type numBinaries = param->size();
         vector<unsigned char*> binariesPointers(numBinaries);
 
-        size_type totalSize = 0;
         for (size_type i = 0; i < numBinaries; ++i)
         {
             binariesPointers[i] = (*param)[i].data();
-            totalSize += (*param)[i].size();
         }
 
-        cl_int err = f(name, totalSize, binariesPointers.data(), NULL);
+        cl_int err = f(name, numBinaries * sizeof(unsigned char*), binariesPointers.data(), NULL);
 
         if (err != CL_SUCCESS) {
             return err;
@@ -978,13 +1029,18 @@ inline cl_int getInfoHelper(Func f, cl_uint name, string* param, long)
 
     // std::string has a constant data member
     // a char vector does not
-    vector<char> value(required);
-    err = f(name, required, value.data(), NULL);
-    if (err != CL_SUCCESS) {
-        return err;
+    if (required > 0) {
+        vector<char> value(required);
+        err = f(name, required, value.data(), NULL);
+        if (err != CL_SUCCESS) {
+            return err;
+        }
+        if (param) {
+            param->assign(begin(value), prev(end(value)));
+        }
     }
-    if (param) {
-        param->assign(begin(value), prev(end(value)));
+    else if (param) {
+        param->assign("");
     }
     return CL_SUCCESS;
 }
@@ -1132,15 +1188,12 @@ inline cl_int getInfoHelper(Func f, cl_uint name, T* param, int, typename T::cl_
     F(cl_image_info, CL_IMAGE_WIDTH, size_type) \
     F(cl_image_info, CL_IMAGE_HEIGHT, size_type) \
     F(cl_image_info, CL_IMAGE_DEPTH, size_type) \
-    F(cl_image_info, CL_IMAGE_ARRAY_SIZE, size_type) \
-    F(cl_image_info, CL_IMAGE_NUM_MIP_LEVELS, cl_uint) \
-    F(cl_image_info, CL_IMAGE_NUM_SAMPLES, cl_uint) \
     \
     F(cl_sampler_info, CL_SAMPLER_REFERENCE_COUNT, cl_uint) \
     F(cl_sampler_info, CL_SAMPLER_CONTEXT, cl::Context) \
-    F(cl_sampler_info, CL_SAMPLER_NORMALIZED_COORDS, cl_addressing_mode) \
-    F(cl_sampler_info, CL_SAMPLER_ADDRESSING_MODE, cl_filter_mode) \
-    F(cl_sampler_info, CL_SAMPLER_FILTER_MODE, cl_bool) \
+    F(cl_sampler_info, CL_SAMPLER_NORMALIZED_COORDS, cl_bool) \
+    F(cl_sampler_info, CL_SAMPLER_ADDRESSING_MODE, cl_addressing_mode) \
+    F(cl_sampler_info, CL_SAMPLER_FILTER_MODE, cl_filter_mode) \
     \
     F(cl_program_info, CL_PROGRAM_REFERENCE_COUNT, cl_uint) \
     F(cl_program_info, CL_PROGRAM_CONTEXT, cl::Context) \
@@ -1204,14 +1257,19 @@ inline cl_int getInfoHelper(Func f, cl_uint name, T* param, int, typename T::cl_
     F(cl_kernel_arg_info, CL_KERNEL_ARG_ACCESS_QUALIFIER, cl_kernel_arg_access_qualifier) \
     F(cl_kernel_arg_info, CL_KERNEL_ARG_TYPE_NAME, string) \
     F(cl_kernel_arg_info, CL_KERNEL_ARG_NAME, string) \
+    F(cl_kernel_arg_info, CL_KERNEL_ARG_TYPE_QUALIFIER, cl_kernel_arg_type_qualifier) \
     \
-    F(cl_device_info, CL_DEVICE_PARENT_DEVICE, cl_device_id) \
+    F(cl_device_info, CL_DEVICE_PARENT_DEVICE, cl::Device) \
     F(cl_device_info, CL_DEVICE_PARTITION_PROPERTIES, cl::vector<cl_device_partition_property>) \
     F(cl_device_info, CL_DEVICE_PARTITION_TYPE, cl::vector<cl_device_partition_property>)  \
     F(cl_device_info, CL_DEVICE_REFERENCE_COUNT, cl_uint) \
     F(cl_device_info, CL_DEVICE_PREFERRED_INTEROP_USER_SYNC, size_type) \
     F(cl_device_info, CL_DEVICE_PARTITION_AFFINITY_DOMAIN, cl_device_affinity_domain) \
-    F(cl_device_info, CL_DEVICE_BUILT_IN_KERNELS, string)
+    F(cl_device_info, CL_DEVICE_BUILT_IN_KERNELS, string) \
+    \
+    F(cl_image_info, CL_IMAGE_ARRAY_SIZE, size_type) \
+    F(cl_image_info, CL_IMAGE_NUM_MIP_LEVELS, cl_uint) \
+    F(cl_image_info, CL_IMAGE_NUM_SAMPLES, cl_uint)
 
 #define CL_HPP_PARAM_NAME_INFO_2_0_(F) \
     F(cl_device_info, CL_DEVICE_QUEUE_ON_HOST_PROPERTIES, cl_command_queue_properties) \
@@ -1224,6 +1282,12 @@ inline cl_int getInfoHelper(Func f, cl_uint name, T* param, int, typename T::cl_
     F(cl_device_info, CL_DEVICE_PIPE_MAX_ACTIVE_RESERVATIONS, cl_uint) \
     F(cl_device_info, CL_DEVICE_PIPE_MAX_PACKET_SIZE, cl_uint) \
     F(cl_device_info, CL_DEVICE_SVM_CAPABILITIES, cl_device_svm_capabilities) \
+    F(cl_device_info, CL_DEVICE_PREFERRED_PLATFORM_ATOMIC_ALIGNMENT, cl_uint) \
+    F(cl_device_info, CL_DEVICE_PREFERRED_GLOBAL_ATOMIC_ALIGNMENT, cl_uint) \
+    F(cl_device_info, CL_DEVICE_PREFERRED_LOCAL_ATOMIC_ALIGNMENT, cl_uint) \
+    F(cl_command_queue_info, CL_QUEUE_SIZE, cl_uint) \
+    F(cl_mem_info, CL_MEM_USES_SVM_POINTER, cl_bool) \
+    F(cl_program_build_info, CL_PROGRAM_BUILD_GLOBAL_VARIABLE_TOTAL_SIZE, size_type) \
     F(cl_pipe_info, CL_PIPE_PACKET_SIZE, cl_uint) \
     F(cl_pipe_info, CL_PIPE_MAX_PACKETS, cl_uint)
 
@@ -1514,6 +1578,7 @@ struct ReferenceHandler<cl_event>
 };
 
 
+#if CL_HPP_TARGET_OPENCL_VERSION >= 120 && CL_HPP_MINIMUM_OPENCL_VERSION < 120
 // Extracts version number with major in the upper 16 bits, minor in the lower 16
 static cl_uint getVersion(const vector<char> &versionInfo)
 {
@@ -1534,12 +1599,11 @@ static cl_uint getVersion(const vector<char> &versionInfo)
     return (highVersion << 16) | lowVersion;
 }
 
-#if CL_HPP_TARGET_OPENCL_VERSION >= 120 && CL_HPP_MINIMUM_OPENCL_VERSION < 120
 static cl_uint getPlatformVersion(cl_platform_id platform)
 {
     size_type size = 0;
     clGetPlatformInfo(platform, CL_PLATFORM_VERSION, 0, NULL, &size);
-    
+
     vector<char> versionInfo(size);
     clGetPlatformInfo(platform, CL_PLATFORM_VERSION, size, versionInfo.data(), &size);
     return getVersion(versionInfo);
@@ -1632,6 +1696,11 @@ public:
     const cl_type& operator ()() const { return object_; }
 
     cl_type& operator ()() { return object_; }
+
+    const cl_type get() const { return object_; }
+
+    cl_type get() { return object_; }
+
 
 protected:
     template<typename Func, typename U>
@@ -1756,6 +1825,10 @@ public:
     const cl_type& operator ()() const { return object_; }
 
     cl_type& operator ()() { return object_; }
+
+    const cl_type get() const { return object_; }
+
+    cl_type get() { return object_; }
 
 protected:
     template<typename Func, typename U>
@@ -3289,7 +3362,27 @@ public:
     }
 };
 
+// Pre-declare SVM map function
+template<typename T>
+inline cl_int enqueueMapSVM(
+    T* ptr,
+    cl_bool blocking,
+    cl_map_flags flags,
+    size_type size,
+    const vector<Event>* events = NULL,
+    Event* event = NULL);
 
+/**
+ * STL-like allocator class for managing SVM objects provided for convenience.
+ *
+ * Note that while this behaves like an allocator for the purposes of constructing vectors and similar objects,
+ * care must be taken when using with smart pointers.
+ * The allocator should not be used to construct a unique_ptr if we are using coarse-grained SVM mode because
+ * the coarse-grained management behaviour would behave incorrectly with respect to reference counting.
+ *
+ * Instead the allocator embeds a Deleter which may be used with unique_ptr and is used
+ * with the allocate_shared and allocate_ptr supplied operations.
+ */
 template<typename T, class SVMTrait>
 class SVMAllocator {
 private:
@@ -3313,7 +3406,7 @@ public:
     template<typename U, typename V>
     friend class SVMAllocator;
 
-    explicit SVMAllocator() :
+    SVMAllocator() :
         context_(Context::getDefault())
     {
     }
@@ -3322,7 +3415,8 @@ public:
         context_(context)
     {
     }
-    
+
+
     SVMAllocator(const SVMAllocator &other) :
         context_(other.context_)
     {
@@ -3351,11 +3445,14 @@ public:
     /**
      * Allocate an SVM pointer.
      *
+     * If the allocator is coarse-grained, this will take ownership to allow
+     * containers to correctly construct data in place. 
      */
     pointer allocate(
         size_type size,
         typename cl::SVMAllocator<void, SVMTrait>::const_pointer = 0)
     {
+        // Allocate memory with default alignment matching the size of the type
         void* voidPointer =
             clSVMAlloc(
             context_(),
@@ -3370,6 +3467,15 @@ public:
             throw excep;
         }
 #endif // #if defined(CL_HPP_ENABLE_EXCEPTIONS)
+
+        // If allocation was coarse-grained then map it
+        if (!(SVMTrait::getSVMMemFlags() & CL_MEM_SVM_FINE_GRAIN_BUFFER)) {
+            cl_int err = enqueueMapSVM(retValue, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE, size*sizeof(T));
+            if (err != CL_SUCCESS) {
+                std::bad_alloc excep;
+                throw excep;
+            }
+        }
 
         // If exceptions disabled, return null pointer from allocator
         return retValue;
@@ -3421,7 +3527,7 @@ public:
     {
         return !operator==(a);
     }
-}; // class SVMAllocator
+}; // class SVMAllocator        return cl::pointer<T>(tmp, detail::Deleter<T, Alloc>{alloc, copies});
 
 
 template<class SVMTrait>
@@ -3441,19 +3547,79 @@ public:
     friend class SVMAllocator;
 };
 
+#if !defined(CL_HPP_NO_STD_UNIQUE_PTR)
+namespace detail
+{
+    template<class Alloc>
+    class Deleter {
+    private:
+        Alloc alloc_;
+        size_type copies_;
+
+    public:
+        typedef typename std::allocator_traits<Alloc>::pointer pointer;
+
+        Deleter(const Alloc &alloc, size_type copies) : alloc_{ alloc }, copies_{ copies }
+        {
+        }
+
+        void operator()(pointer ptr) const {
+            Alloc tmpAlloc{ alloc_ };
+            std::allocator_traits<Alloc>::destroy(tmpAlloc, std::addressof(*ptr));
+            std::allocator_traits<Alloc>::deallocate(tmpAlloc, ptr, copies_);
+        }
+    };
+} // namespace detail
+
+/**
+ * Allocation operation compatible with std::allocate_ptr.
+ * Creates a unique_ptr<T> by default.
+ * This requirement is to ensure that the control block is not
+ * allocated in memory inaccessible to the host.
+ */
+template <class T, class Alloc, class... Args>
+cl::pointer<T, detail::Deleter<Alloc>> allocate_pointer(const Alloc &alloc_, Args&&... args)
+{
+    Alloc alloc(alloc_);
+    static const size_type copies = 1;
+
+    // Ensure that creation of the management block and the
+    // object are dealt with separately such that we only provide a deleter
+
+    T* tmp = std::allocator_traits<Alloc>::allocate(alloc, copies);
+    if (!tmp) {
+        std::bad_alloc excep;
+        throw excep;
+    }
+    try {
+        std::allocator_traits<Alloc>::construct(
+            alloc,
+            std::addressof(*tmp),
+            std::forward<Args>(args)...);
+
+        return cl::pointer<T, detail::Deleter<Alloc>>(tmp, detail::Deleter<Alloc>{alloc, copies});
+    }
+    catch (std::bad_alloc b)
+    {
+        std::allocator_traits<Alloc>::deallocate(alloc, tmp, copies);
+        throw;
+    }
+}
+
 template< class T, class SVMTrait, class... Args >
-cl::pointer<T> allocate_svm(Args... args)
+cl::pointer<T, detail::Deleter<SVMAllocator<T, SVMTrait>>> allocate_svm(Args... args)
 {
     SVMAllocator<T, SVMTrait> alloc;
     return cl::allocate_pointer<T>(alloc, args...);
 }
 
 template< class T, class SVMTrait, class... Args >
-cl::pointer<T> allocate_svm(const cl::Context &c, Args... args)
+cl::pointer<T, detail::Deleter<SVMAllocator<T, SVMTrait>>> allocate_svm(const cl::Context &c, Args... args)
 {
     SVMAllocator<T, SVMTrait> alloc(c);
     return cl::allocate_pointer<T>(alloc, args...);
 }
+#endif // #if !defined(CL_HPP_NO_STD_UNIQUE_PTR)
 
 /*! \brief Vector alias to simplify contruction of coarse-grained SVM containers.
  * 
@@ -5116,7 +5282,7 @@ public:
         cl_mem_flags flags = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
         object_ = ::clCreatePipe(context(), flags, packet_size, max_packets, nullptr, &error);
 
-        detail::errHandler(error, __CREATE_BUFFER_ERR);
+        detail::errHandler(error, __CREATE_PIPE_ERR);
         if (err != NULL) {
             *err = error;
         }
@@ -5142,7 +5308,7 @@ public:
         cl_mem_flags flags = CL_MEM_READ_WRITE | CL_MEM_HOST_NO_ACCESS;
         object_ = ::clCreatePipe(context(), flags, packet_size, max_packets, nullptr, &error);
 
-        detail::errHandler(error, __CREATE_BUFFER_ERR);
+        detail::errHandler(error, __CREATE_PIPE_ERR);
         if (err != NULL) {
             *err = error;
         }
@@ -5205,7 +5371,7 @@ public:
     {
         return detail::errHandler(
             detail::getInfo(&::clGetPipeInfo, object_, name, param),
-            __GET_MEM_OBJECT_INFO_ERR);
+            __GET_PIPE_INFO_ERR);
     }
 
     //! \brief Wrapper for clGetMemObjectInfo() that returns by value.
@@ -5653,8 +5819,8 @@ public:
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
     /*! \brief setArg overload taking a shared_ptr type
      */
-    template<typename T>
-    cl_int setArg(cl_uint index, const cl::pointer<T> argPtr)
+    template<typename T, class D>
+    cl_int setArg(cl_uint index, const cl::pointer<T, D> &argPtr)
     {
         return detail::errHandler(
             ::clSetKernelArgSVMPointer(object_, index, argPtr.get()),
@@ -5670,11 +5836,9 @@ public:
             ::clSetKernelArgSVMPointer(object_, index, argPtr.data()),
             __SET_KERNEL_ARGS_ERR);
     }
-#endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
-   
-#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+
     /*! \brief setArg overload taking a pointer type
-    */
+     */
     template<typename T>
     typename std::enable_if<std::is_pointer<T>::value, cl_int>::type
         setArg(cl_uint index, const T argPtr)
@@ -5761,8 +5925,8 @@ public:
             );
     }
     
-    template<int index, int ArrayLength, typename T0, typename... Ts>
-    void setSVMPointersHelper(std::array<void*, ArrayLength> &pointerList, pointer<T0> &t0, Ts... ts)
+    template<int index, int ArrayLength, class D, typename T0, typename... Ts>
+    void setSVMPointersHelper(std::array<void*, ArrayLength> &pointerList, const pointer<T0, D> &t0, Ts... ts)
     {
         pointerList[index] = static_cast<void*>(t0.get());
         setSVMPointersHelper<index + 1, Ts...>(ts...);
@@ -5776,8 +5940,8 @@ public:
         setSVMPointersHelper<index + 1, Ts...>(ts...);
     }
     
-    template<int index, int ArrayLength, typename T0>
-    void setSVMPointersHelper(std::array<void*, ArrayLength> &pointerList, pointer<T0> &t0)
+    template<int index, int ArrayLength, typename T0, class D>
+    void setSVMPointersHelper(std::array<void*, ArrayLength> &pointerList, const pointer<T0, D> &t0)
     {
         pointerList[index] = static_cast<void*>(t0.get());
     }
@@ -5790,7 +5954,7 @@ public:
     }
 
     template<typename T0, typename... Ts>
-    cl_int setSVMPointers(T0 t0, Ts... ts)
+    cl_int setSVMPointers(const T0 &t0, Ts... ts)
     {
         std::array<void*, 1 + sizeof...(Ts)> pointerList;
 
@@ -6399,7 +6563,7 @@ inline cl_int cl::Program::getInfo(cl_program_info name, vector<vector<unsigned 
 
         // Resize the parameter array and constituent arrays
         param->resize(numBinaries);
-        for (int i = 0; i < numBinaries; ++i) {
+        for (size_type i = 0; i < numBinaries; ++i) {
             (*param)[i].resize(sizes[i]);
         }
 
@@ -6436,6 +6600,18 @@ inline Kernel::Kernel(const Program& program, const char* name, cl_int* err)
 
 }
 
+enum class QueueProperties : cl_command_queue_properties
+{
+    None = 0,
+    Profiling = CL_QUEUE_PROFILING_ENABLE,
+    OutOfOrder = CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE,
+};
+
+inline QueueProperties operator|(QueueProperties lhs, QueueProperties rhs)
+{
+    return static_cast<QueueProperties>(static_cast<cl_command_queue_properties>(lhs) | static_cast<cl_command_queue_properties>(rhs));
+}
+
 /*! \class CommandQueue
  * \brief CommandQueue interface for cl_command_queue.
  */
@@ -6467,7 +6643,7 @@ private:
                 default_error_ = error;
             }
             else {
-                Device device = context.getInfo<CL_CONTEXT_DEVICES>()[0];
+                Device device = Device::getDefault();
                 default_ = CommandQueue(context, device, 0, &default_error_);
             }
         }
@@ -6499,6 +6675,7 @@ public:
         default_ = CommandQueue();
     }
 #endif // #ifdef CL_HPP_UNIT_TEST_ENABLE
+        
 
     /*!
      * \brief Constructs a CommandQueue based on passed properties.
@@ -6547,6 +6724,51 @@ public:
 #endif
         }
     }
+
+   /*!
+    * \brief Constructs a CommandQueue based on passed properties.
+    * Will return an CL_INVALID_QUEUE_PROPERTIES error if CL_QUEUE_ON_DEVICE is specified.
+    */
+   CommandQueue(
+       QueueProperties properties,
+       cl_int* err = NULL)
+   {
+       cl_int error;
+
+       Context context = Context::getDefault(&error);
+       detail::errHandler(error, __CREATE_CONTEXT_ERR);
+
+       if (error != CL_SUCCESS) {
+           if (err != NULL) {
+               *err = error;
+           }
+       }
+       else {
+           Device device = context.getInfo<CL_CONTEXT_DEVICES>()[0];
+
+#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+           cl_queue_properties queue_properties[] = {
+               CL_QUEUE_PROPERTIES, static_cast<cl_queue_properties>(properties), 0 };
+
+           object_ = ::clCreateCommandQueueWithProperties(
+               context(), device(), queue_properties, &error);
+
+
+           detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
+           if (err != NULL) {
+               *err = error;
+           }
+#else
+           object_ = ::clCreateCommandQueue(
+               context(), device(), static_cast<cl_command_queue_properties>(properties), &error);
+
+           detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
+           if (err != NULL) {
+               *err = error;
+           }
+#endif
+       }
+   }
 
     /*!
      * \brief Constructs a CommandQueue for an implementation defined device in the given context
@@ -6599,6 +6821,51 @@ public:
     }
 
     /*!
+    * \brief Constructs a CommandQueue for an implementation defined device in the given context
+    * Will return an CL_INVALID_QUEUE_PROPERTIES error if CL_QUEUE_ON_DEVICE is specified.
+    */
+    explicit CommandQueue(
+        const Context& context,
+        QueueProperties properties,
+        cl_int* err = NULL)
+    {
+        cl_int error;
+        vector<cl::Device> devices;
+        error = context.getInfo(CL_CONTEXT_DEVICES, &devices);
+
+        detail::errHandler(error, __CREATE_CONTEXT_ERR);
+
+        if (error != CL_SUCCESS)
+        {
+            if (err != NULL) {
+                *err = error;
+            }
+            return;
+        }
+
+#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+        cl_queue_properties queue_properties[] = {
+            CL_QUEUE_PROPERTIES, static_cast<cl_queue_properties>(properties), 0 };
+        object_ = ::clCreateCommandQueueWithProperties(
+            context(), devices[0](), queue_properties, &error);
+       
+        detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
+        if (err != NULL) {
+            *err = error;
+        }
+#else
+        object_ = ::clCreateCommandQueue(
+            context(), devices[0](), static_cast<cl_command_queue_properties>(properties), &error);
+
+        detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
+        if (err != NULL) {
+            *err = error;
+        }
+#endif
+
+    }
+
+    /*!
      * \brief Constructs a CommandQueue for a passed device and context
      * Will return an CL_INVALID_QUEUE_PROPERTIES error if CL_QUEUE_ON_DEVICE is specified.
      */
@@ -6613,14 +6880,9 @@ public:
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
         cl_queue_properties queue_properties[] = {
             CL_QUEUE_PROPERTIES, properties, 0 };
-        if ((properties & CL_QUEUE_ON_DEVICE) == 0) {
-            object_ = ::clCreateCommandQueueWithProperties(
-                context(), device(), queue_properties, &error);
-        }
-        else {
-            error = CL_INVALID_QUEUE_PROPERTIES;
-        }
-
+        object_ = ::clCreateCommandQueueWithProperties(
+            context(), device(), queue_properties, &error);
+        
         detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
         if (err != NULL) {
             *err = error;
@@ -6635,6 +6897,39 @@ public:
         }
 #endif
     }
+
+    /*!
+     * \brief Constructs a CommandQueue for a passed device and context
+     * Will return an CL_INVALID_QUEUE_PROPERTIES error if CL_QUEUE_ON_DEVICE is specified.
+     */
+    CommandQueue(
+        const Context& context,
+        const Device& device,
+        QueueProperties properties,
+        cl_int* err = NULL)
+    {
+            cl_int error;
+
+#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+            cl_queue_properties queue_properties[] = {
+                CL_QUEUE_PROPERTIES, static_cast<cl_queue_properties>(properties), 0 };
+            object_ = ::clCreateCommandQueueWithProperties(
+                context(), device(), queue_properties, &error);
+      
+            detail::errHandler(error, __CREATE_COMMAND_QUEUE_WITH_PROPERTIES_ERR);
+            if (err != NULL) {
+                *err = error;
+            }
+#else
+            object_ = ::clCreateCommandQueue(
+                context(), device(), static_cast<cl_command_queue_properties>(properties), &error);
+
+            detail::errHandler(error, __CREATE_COMMAND_QUEUE_ERR);
+            if (err != NULL) {
+                *err = error;
+            }
+#endif
+        }
 
     static CommandQueue getDefault(cl_int * err = NULL) 
     {
@@ -6654,7 +6949,7 @@ public:
      * Modify the default command queue to be used by
      * subsequent operations.
      * Will only set the default if no default was previously created.
-     * @return updated default platform.
+     * @return updated default command queue.
      *         Should be compared to the passed value to ensure that it was updated.
      */
     static CommandQueue setDefault(const CommandQueue &default_queue)
@@ -6855,7 +7150,7 @@ public:
         size_type buffer_slice_pitch,
         size_type host_row_pitch,
         size_type host_slice_pitch,
-        void *ptr,
+        const void *ptr,
         const vector<Event>* events = NULL,
         Event* event = NULL) const
     {
@@ -7003,7 +7298,7 @@ public:
         const array<size_type, 3>& region,
         size_type row_pitch,
         size_type slice_pitch,
-        void* ptr,
+        const void* ptr,
         const vector<Event>* events = NULL,
         Event* event = NULL) const
     {
@@ -7282,6 +7577,89 @@ public:
         return result;
     }
 
+#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+    /**
+     * Enqueues a command that will allow the host to update a region of a coarse-grained SVM buffer.
+     * This variant takes a raw SVM pointer.
+     */
+    template<typename T>
+    cl_int enqueueMapSVM(
+        T* ptr,
+        cl_bool blocking,
+        cl_map_flags flags,
+        size_type size,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
+    {
+        cl_event tmp;
+        cl_int err = detail::errHandler(::clEnqueueSVMMap(
+            object_, blocking, flags, static_cast<void*>(ptr), size,
+            (events != NULL) ? (cl_uint)events->size() : 0,
+            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+            (event != NULL) ? &tmp : NULL),
+            __ENQUEUE_MAP_BUFFER_ERR);
+
+        if (event != NULL && err == CL_SUCCESS)
+            *event = tmp;
+
+        return err;
+    }
+
+
+    /**
+     * Enqueues a command that will allow the host to update a region of a coarse-grained SVM buffer.
+     * This variant takes a cl::pointer instance.
+     */
+    template<typename T, class D>
+    cl_int enqueueMapSVM(
+        cl::pointer<T, D> &ptr,
+        cl_bool blocking,
+        cl_map_flags flags,
+        size_type size,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
+    {
+        cl_event tmp;
+        cl_int err = detail::errHandler(::clEnqueueSVMMap(
+            object_, blocking, flags, static_cast<void*>(ptr.get()), size,
+            (events != NULL) ? (cl_uint)events->size() : 0,
+            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+            (event != NULL) ? &tmp : NULL),
+            __ENQUEUE_MAP_BUFFER_ERR);
+
+        if (event != NULL && err == CL_SUCCESS)
+            *event = tmp;
+
+        return err;
+    }
+
+    /**
+     * Enqueues a command that will allow the host to update a region of a coarse-grained SVM buffer.
+     * This variant takes a cl::vector instance.
+     */
+    template<typename T, class Alloc>
+    cl_int enqueueMapSVM(
+        cl::vector<T, Alloc> &container,
+        cl_bool blocking,
+        cl_map_flags flags,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
+    {
+        cl_event tmp;
+        cl_int err = detail::errHandler(::clEnqueueSVMMap(
+            object_, blocking, flags, static_cast<void*>(container.data()), container.size(),
+            (events != NULL) ? (cl_uint)events->size() : 0,
+            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+            (event != NULL) ? &tmp : NULL),
+            __ENQUEUE_MAP_BUFFER_ERR);
+
+        if (event != NULL && err == CL_SUCCESS)
+            *event = tmp;
+
+        return err;
+    }
+#endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
+
     cl_int enqueueUnmapMemObject(
         const Memory& memory,
         void* mapped_ptr,
@@ -7302,6 +7680,84 @@ public:
 
         return err;
     }
+
+
+#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+    /**
+     * Enqueues a command that will release a coarse-grained SVM buffer back to the OpenCL runtime.
+     * This variant takes a raw SVM pointer.
+     */
+    template<typename T>
+    cl_int enqueueUnmapSVM(
+        T* ptr,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
+    {
+        cl_event tmp;
+        cl_int err = detail::errHandler(
+            ::clEnqueueSVMUnmap(
+            object_, static_cast<void*>(ptr),
+            (events != NULL) ? (cl_uint)events->size() : 0,
+            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+            (event != NULL) ? &tmp : NULL),
+            __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+
+        if (event != NULL && err == CL_SUCCESS)
+            *event = tmp;
+
+        return err;
+    }
+
+    /**
+     * Enqueues a command that will release a coarse-grained SVM buffer back to the OpenCL runtime.
+     * This variant takes a cl::pointer instance.
+     */
+    template<typename T, class D>
+    cl_int enqueueUnmapSVM(
+        cl::pointer<T, D> &ptr,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
+    {
+        cl_event tmp;
+        cl_int err = detail::errHandler(
+            ::clEnqueueSVMUnmap(
+            object_, static_cast<void*>(ptr.get()),
+            (events != NULL) ? (cl_uint)events->size() : 0,
+            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+            (event != NULL) ? &tmp : NULL),
+            __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+
+        if (event != NULL && err == CL_SUCCESS)
+            *event = tmp;
+
+        return err;
+    }
+
+    /**
+     * Enqueues a command that will release a coarse-grained SVM buffer back to the OpenCL runtime.
+     * This variant takes a cl::vector instance.
+     */
+    template<typename T, class Alloc>
+    cl_int enqueueUnmapSVM(
+        cl::vector<T, Alloc> &container,
+        const vector<Event>* events = NULL,
+        Event* event = NULL) const
+    {
+        cl_event tmp;
+        cl_int err = detail::errHandler(
+            ::clEnqueueSVMUnmap(
+            object_, static_cast<void*>(container.data()),
+            (events != NULL) ? (cl_uint)events->size() : 0,
+            (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+            (event != NULL) ? &tmp : NULL),
+            __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+
+        if (event != NULL && err == CL_SUCCESS)
+            *event = tmp;
+
+        return err;
+    }
+#endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 120
     /**
@@ -7432,7 +7888,7 @@ public:
     CL_EXT_PREFIX__VERSION_1_2_DEPRECATED cl_int enqueueTask(
         const Kernel& kernel,
         const vector<Event>* events = NULL,
-        Event* event = NULL) CL_EXT_SUFFIX__VERSION_1_2_DEPRECATED const
+        Event* event = NULL) const CL_EXT_SUFFIX__VERSION_1_2_DEPRECATED
     {
         cl_event tmp;
         cl_int err = detail::errHandler(
@@ -7668,25 +8124,43 @@ CL_HPP_DEFINE_STATIC_MEMBER_ cl_int CommandQueue::default_error_ = CL_SUCCESS;
 
 
 #if CL_HPP_TARGET_OPENCL_VERSION >= 200
+enum class DeviceQueueProperties : cl_command_queue_properties
+{
+    None = 0,
+    Profiling = CL_QUEUE_PROFILING_ENABLE,
+};
+
+inline DeviceQueueProperties operator|(DeviceQueueProperties lhs, DeviceQueueProperties rhs)
+{
+    return static_cast<DeviceQueueProperties>(static_cast<cl_command_queue_properties>(lhs) | static_cast<cl_command_queue_properties>(rhs));
+}
+
 /*! \class DeviceCommandQueue
  * \brief DeviceCommandQueue interface for device cl_command_queues.
  */
 class DeviceCommandQueue : public detail::Wrapper<cl_command_queue>
 {
 public:
+
     /*!
-    * Default construct device command queue on default context and device
-    */
-    DeviceCommandQueue(cl_int* err = NULL)
+     * Trivial empty constructor to create a null queue.
+     */
+    DeviceCommandQueue() { }
+
+    /*!
+     * Default construct device command queue on default context and device
+     */
+    DeviceCommandQueue(DeviceQueueProperties properties, cl_int* err = NULL)
     {
         cl_int error;
         cl::Context context = cl::Context::getDefault();
         cl::Device device = cl::Device::getDefault();
-        
-        cl_command_queue_properties properties =
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE;
+
+        cl_command_queue_properties mergedProperties =
+            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | static_cast<cl_command_queue_properties>(properties);
+
         cl_queue_properties queue_properties[] = {
-            CL_QUEUE_PROPERTIES, properties, 0 };
+            CL_QUEUE_PROPERTIES, mergedProperties, 0 };
         object_ = ::clCreateCommandQueueWithProperties(
             context(), device(), queue_properties, &error);
 
@@ -7702,14 +8176,15 @@ public:
     DeviceCommandQueue(
         const Context& context,
         const Device& device,
+        DeviceQueueProperties properties = DeviceQueueProperties::None,
         cl_int* err = NULL)
     {
         cl_int error;
 
-        cl_command_queue_properties properties = 
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE;
+        cl_command_queue_properties mergedProperties =
+            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | static_cast<cl_command_queue_properties>(properties);
         cl_queue_properties queue_properties[] = {
-            CL_QUEUE_PROPERTIES, properties, 0 };
+            CL_QUEUE_PROPERTIES, mergedProperties, 0 };
         object_ = ::clCreateCommandQueueWithProperties(
             context(), device(), queue_properties, &error);
 
@@ -7726,14 +8201,15 @@ public:
         const Context& context,
         const Device& device,
         cl_uint queueSize,
+        DeviceQueueProperties properties = DeviceQueueProperties::None,
         cl_int* err = NULL)
     {
         cl_int error;
 
-        cl_command_queue_properties properties =
-            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE;
+        cl_command_queue_properties mergedProperties =
+            CL_QUEUE_OUT_OF_ORDER_EXEC_MODE_ENABLE | CL_QUEUE_ON_DEVICE | static_cast<cl_command_queue_properties>(properties);
         cl_queue_properties queue_properties[] = {
-            CL_QUEUE_PROPERTIES, properties, 
+            CL_QUEUE_PROPERTIES, mergedProperties,
             CL_QUEUE_SIZE, queueSize, 
             0 };
         object_ = ::clCreateCommandQueueWithProperties(
@@ -8080,6 +8556,81 @@ inline void* enqueueMapBuffer(
     return result;
 }
 
+
+#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+/**
+ * Enqueues to the default queue a command that will allow the host to
+ * update a region of a coarse-grained SVM buffer.
+ * This variant takes a raw SVM pointer.
+ */
+template<typename T>
+inline cl_int enqueueMapSVM(
+    T* ptr,
+    cl_bool blocking,
+    cl_map_flags flags,
+    size_type size,
+    const vector<Event>* events,
+    Event* event)
+{
+    cl_int error;
+    CommandQueue queue = CommandQueue::getDefault(&error);
+    if (error != CL_SUCCESS) {
+        return detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
+    }
+
+    return queue.enqueueMapSVM(
+        ptr, blocking, flags, size, events, event);
+}
+
+/**
+ * Enqueues to the default queue a command that will allow the host to 
+ * update a region of a coarse-grained SVM buffer.
+ * This variant takes a cl::pointer instance.
+ */
+template<typename T, class D>
+inline cl_int enqueueMapSVM(
+    cl::pointer<T, D> ptr,
+    cl_bool blocking,
+    cl_map_flags flags,
+    size_type size,
+    const vector<Event>* events = NULL,
+    Event* event = NULL)
+{
+    cl_int error;
+    CommandQueue queue = CommandQueue::getDefault(&error);
+    if (error != CL_SUCCESS) {
+        return detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
+    }
+
+    return queue.enqueueMapSVM(
+        ptr, blocking, flags, size, events, event);
+}
+
+/**
+ * Enqueues to the default queue a command that will allow the host to
+ * update a region of a coarse-grained SVM buffer.
+ * This variant takes a cl::vector instance.
+ */
+template<typename T, class Alloc>
+inline cl_int enqueueMapSVM(
+    cl::vector<T, Alloc> container,
+    cl_bool blocking,
+    cl_map_flags flags,
+    const vector<Event>* events = NULL,
+    Event* event = NULL)
+{
+    cl_int error;
+    CommandQueue queue = CommandQueue::getDefault(&error);
+    if (error != CL_SUCCESS) {
+        return detail::errHandler(error, __ENQUEUE_MAP_BUFFER_ERR);
+    }
+
+    return queue.enqueueMapSVM(
+        container, blocking, flags, events, event);
+}
+
+#endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
+
 inline cl_int enqueueUnmapMemObject(
     const Memory& memory,
     void* mapped_ptr,
@@ -8096,10 +8647,10 @@ inline cl_int enqueueUnmapMemObject(
     cl_event tmp;
     cl_int err = detail::errHandler(
         ::clEnqueueUnmapMemObject(
-            queue(), memory(), mapped_ptr,
-            (events != NULL) ? (cl_uint) events->size() : 0,
-            (events != NULL && events->size() > 0) ? (cl_event*) &events->front() : NULL,
-            (event != NULL) ? &tmp : NULL),
+        queue(), memory(), mapped_ptr,
+        (events != NULL) ? (cl_uint)events->size() : 0,
+        (events != NULL && events->size() > 0) ? (cl_event*)&events->front() : NULL,
+        (event != NULL) ? &tmp : NULL),
         __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
 
     if (event != NULL && err == CL_SUCCESS)
@@ -8107,6 +8658,73 @@ inline cl_int enqueueUnmapMemObject(
 
     return err;
 }
+
+#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+/**
+ * Enqueues to the default queue a command that will release a coarse-grained 
+ * SVM buffer back to the OpenCL runtime.
+ * This variant takes a raw SVM pointer.
+ */
+template<typename T>
+inline cl_int enqueueUnmapSVM(
+    T* ptr,
+    const vector<Event>* events = NULL,
+    Event* event = NULL)
+{
+    cl_int error;
+    CommandQueue queue = CommandQueue::getDefault(&error);
+    if (error != CL_SUCCESS) {
+        return detail::errHandler(error, __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+    }
+
+    return detail::errHandler(queue.enqueueUnmapSVM(ptr, events, event), 
+        __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+
+}
+
+/**
+ * Enqueues to the default queue a command that will release a coarse-grained 
+ * SVM buffer back to the OpenCL runtime.
+ * This variant takes a cl::pointer instance.
+ */
+template<typename T, class D>
+inline cl_int enqueueUnmapSVM(
+    cl::pointer<T, D> &ptr,
+    const vector<Event>* events = NULL,
+    Event* event = NULL)
+{
+    cl_int error;
+    CommandQueue queue = CommandQueue::getDefault(&error);
+    if (error != CL_SUCCESS) {
+        return detail::errHandler(error, __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+    }
+
+    return detail::errHandler(queue.enqueueUnmapSVM(ptr, events, event),
+        __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+}
+
+/**
+ * Enqueues to the default queue a command that will release a coarse-grained 
+ * SVM buffer back to the OpenCL runtime.
+ * This variant takes a cl::vector instance.
+ */
+template<typename T, class Alloc>
+inline cl_int enqueueUnmapSVM(
+    cl::vector<T, Alloc> &container,
+    const vector<Event>* events = NULL,
+    Event* event = NULL)
+{
+    cl_int error;
+    CommandQueue queue = CommandQueue::getDefault(&error);
+    if (error != CL_SUCCESS) {
+        return detail::errHandler(error, __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+    }
+
+    return detail::errHandler(queue.enqueueUnmapSVM(container, events, event),
+        __ENQUEUE_UNMAP_MEM_OBJECT_ERR);
+}
+
+#endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
 
 inline cl_int enqueueCopyBuffer(
         const Buffer& src,
@@ -8229,6 +8847,28 @@ inline cl_int copy( const CommandQueue &queue, const cl::Buffer &buffer, Iterato
     return CL_SUCCESS;
 }
 
+
+#if CL_HPP_TARGET_OPENCL_VERSION >= 200
+/**
+ * Blocking SVM map operation - performs a blocking map underneath.
+ */
+template<typename T, class Alloc>
+inline cl_int mapSVM(cl::vector<T, Alloc> &container)
+{
+    return enqueueMapSVM(container, CL_TRUE, CL_MAP_READ | CL_MAP_WRITE);
+}
+
+/**
+* Blocking SVM map operation - performs a blocking map underneath.
+*/
+template<typename T, class Alloc>
+inline cl_int unmapSVM(cl::vector<T, Alloc> &container)
+{
+    return enqueueUnmapSVM(container);
+}
+
+#endif // #if CL_HPP_TARGET_OPENCL_VERSION >= 200
+
 #if CL_HPP_TARGET_OPENCL_VERSION >= 110
 inline cl_int enqueueReadBufferRect(
     const Buffer& buffer,
@@ -8276,7 +8916,7 @@ inline cl_int enqueueWriteBufferRect(
     size_type buffer_slice_pitch,
     size_type host_row_pitch,
     size_type host_slice_pitch,
-    void *ptr,
+    const void *ptr,
     const vector<Event>* events = NULL,
     Event* event = NULL)
 {
@@ -8374,7 +9014,7 @@ inline cl_int enqueueWriteImage(
     const array<size_type, 3>& region,
     size_type row_pitch,
     size_type slice_pitch,
-    void* ptr,
+    const void* ptr,
     const vector<Event>* events = NULL,
     Event* event = NULL)
 {
@@ -8785,7 +9425,7 @@ public:
     }
 
     template<typename T0, typename... T1s>
-    cl_int setSVMPointers(T0 t0, T1s... ts)
+    cl_int setSVMPointers(const T0 &t0, T1s... ts)
     {
         return kernel_.setSVMPointers(t0, ts...);
     }
@@ -8908,6 +9548,10 @@ namespace compatibility {
 
 #undef __UNLOAD_COMPILER_ERR
 #undef __CREATE_SUB_DEVICES_ERR
+
+#undef __CREATE_PIPE_ERR
+#undef __GET_PIPE_INFO_ERR
+
 #endif //CL_HPP_USER_OVERRIDE_ERROR_STRINGS
 
 // Extensions

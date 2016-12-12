@@ -47,11 +47,11 @@ static const char *prog_src_two = "kernel void\n"
 int test_context(cl_context ctx, const char *prog_src, int mul,
   int ndevs, cl_device_id *devs) {
   cl_int err;
-  cl_command_queue *queue = (cl_command_queue *)calloc(sizeof(cl_command_queue), ndevs);
+  cl_command_queue *queue = (cl_command_queue *)malloc(sizeof(cl_command_queue) * ndevs);
   cl_program prog;
   cl_kernel krn;
   cl_mem buf;
-  cl_event *evt = (cl_event *)calloc(sizeof(cl_event), ndevs);
+  cl_event *evt = (cl_event *)malloc(sizeof(cl_event) * ndevs);
   cl_int i;
 
   prog = clCreateProgramWithSource(ctx, 1, &prog_src, NULL, &err);

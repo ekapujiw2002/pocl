@@ -210,7 +210,11 @@ pocl_init_devices()
    * everytime we use the debug macros */
 #ifdef POCL_DEBUG_MESSAGES
   pocl_debug_messages = pocl_get_bool_option("POCL_DEBUG", 0);
+#if defined(_MSC_VER)
+  stderr_is_a_tty = 0; // Disable colored output
+#else
   stderr_is_a_tty = isatty(fileno(stderr));
+#endif
 #endif
 
   pocl_cache_init_topdir();

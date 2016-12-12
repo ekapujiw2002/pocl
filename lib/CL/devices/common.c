@@ -324,7 +324,11 @@ void pocl_free_global_mem(cl_device_id device, void* ptr, size_t size)
   assert(mem->currently_allocated >= size);
   mem->currently_allocated -= size;
 
+#if !defined(_MSC_VER)
   POCL_MEM_FREE(ptr);
+  #else
+  _aligned_free(ptr);
+#endif
 }
 
 void pocl_print_system_memory_stats()

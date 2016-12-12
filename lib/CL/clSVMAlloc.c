@@ -94,7 +94,7 @@ POname(clSVMAlloc)(cl_context context,
   mem->flags = CL_MEM_ALLOC_HOST_PTR | CL_MEM_READ_WRITE;
   mem->mem_host_ptr = NULL;
   mem->size = size;
-  pocl_mem_identifier *device_ptrs = (pocl_mem_identifier *)calloc(pocl_num_devices, sizeof(pocl_mem_identifier));
+  pocl_mem_identifier *device_ptrs = (pocl_mem_identifier *)malloc(pocl_num_devices * sizeof(pocl_mem_identifier));
   device_ptrs[dev->global_mem_id].mem_ptr = NULL;
   mem->device_ptrs = device_ptrs;
 
