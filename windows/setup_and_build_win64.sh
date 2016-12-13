@@ -38,7 +38,7 @@ cd $POCLBUILDROOT/pocl-build
 export PATH=$PATH:$POCLBUILDROOT/llvm-build/MinSizeRel/bin
 Hwloc_ROOT=../hwloc-win64-build-1.10.0/ Pthreads_ROOT=../pthreads-win32/ \
   cmake -DSTATIC_LLVM:BOOL=ON -DDEFAULT_ENABLE_ICD:BOOL=OFF \
-    -DCMAKE_BUILD_TYPE=MinSizeRel -DBUILD_SHARED_LIBS:BOOL=OFF \
+    -DBUILD_SHARED_LIBS:BOOL=OFF \
     -DCMAKE_INSTALL_PREFIX:PATH=$PWD/../install-pocl \
     -G "Visual Studio 14 2015 Win64" ../pocl/
 cmake --build . --config MinSizeRel

@@ -211,7 +211,7 @@ pocl_init_devices()
 #ifdef POCL_DEBUG_MESSAGES
   pocl_debug_messages = pocl_get_bool_option("POCL_DEBUG", 0);
 #if defined(_MSC_VER)
-  stderr_is_a_tty = 0; // Disable colored output
+  stderr_is_a_tty = 0; // Disable output of control codes
 #else
   stderr_is_a_tty = isatty(fileno(stderr));
 #endif

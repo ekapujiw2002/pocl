@@ -43,7 +43,7 @@ pocl_topology_detect_device_info(cl_device_id device)
    * are no plugins to be found.
    */
 #if defined(_MSC_VER)
-  _putenv_s("HWLOC_PLUGINS_PATH", "/dev/null");
+  _putenv_s("HWLOC_PLUGINS_PATH", "NUL");
 #else
   setenv ("HWLOC_PLUGINS_PATH", "/dev/null", 1);
 #endif
